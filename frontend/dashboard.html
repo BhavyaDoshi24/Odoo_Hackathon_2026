@@ -3,133 +3,259 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL Scanner & Analysis Report</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>BugScout | URL Scanner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* --- General Reset --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { display: flex; height: 100vh; background-color: #fcfcfc; overflow: hidden; }
+        body { display: flex; height: 100vh; background-color: #f8f9fa; overflow: hidden;}
 
-        /* --- Sidebar --- */
-        .sidebar { width: 250px; background-color: #f2c96c; display: flex; flex-direction: column; padding-top: 30px; gap: 20px; flex-shrink: 0; align-items: center; }
-        .logo-container { width: 100%; padding: 0 10px 10px 10px; display: flex; justify-content: center; margin-top: -10px; }
-        .logo-container img { width: 80%; height: auto; border-radius: 100px; object-fit: contain; }
-        .nav-item { background: white; margin-right: -25px; padding: 15px 30px; border-radius: 0 30px 30px 0; display: flex; align-items: center; gap: 15px; cursor: pointer; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); transition: 0.3s; width: 90%; align-self: flex-start; }
-        .nav-item:hover { transform: translateX(5px); background: #fff9ed; }
+        /* Sidebar Styling */
+        .sidebar { 
+            width: 280px; 
+            background-color: #f2c96c; 
+            display: flex; 
+            flex-direction: column; 
+            padding-top: 30px; 
+            gap: 10px; 
+            align-items: center; 
+            position: relative; 
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        
+        /* Proper Circular Logo */
+        .logo-container { width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;}
+        .logo-circle img { width: 100%; height: 60%; object-fit: cover; }
+        .brand-name { 
+            margin-top: 12px; 
+            font-weight: 700; 
+            font-size: 1.4rem; 
+            color: #000; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+        }
 
-        /* --- Main Content --- */
-        .main-content { flex: 1; position: relative; display: flex; flex-direction: column; padding: 20px 40px; overflow-y: auto; }
-        .top-bar { width: 100%; display: flex; justify-content: flex-end; margin-bottom: 40px; }
-        .share-btn { background-color: #000; color: white; padding: 8px 20px; border-radius: 8px; border: none; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+        /* Navigation buttons */
+        .nav-group { width: 100%; display: flex;margin-top: -70px; flex-direction: column; gap: 12px; }
+        .nav-item { 
+            background: white; 
+            padding: 14px 25px; 
+            border-radius: 0 40px 40px 0; 
+            cursor: pointer; 
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.05); 
+            width: 90%; 
+            align-self: flex-start; 
+            transition: all 0.3s ease; 
+            font-weight: 600; 
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-item:hover { transform: translateX(8px); background: #000; color: #f2c96c; }
 
-        /* --- Search Section --- */
-        .scan-container { width: 100%; max-width: 900px; margin: 0 auto 50px auto; text-align: center; }
-        .input-wrapper { position: relative; margin-bottom: 20px; }
-        .input-wrapper input { width: 100%; padding: 15px 15px 15px 50px; border: 1.5px solid #000; border-radius: 8px; font-size: 16px; outline: none; }
-        .input-wrapper .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; stroke: #555; stroke-width: 2; fill: none; }
+        /* Search panel UI */
+        #search-panel {
+            display: none; width: 90%; padding: 20px; background: white; border-radius: 15px;
+            flex-direction: column; gap: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            margin-top: 10px; border: 1px solid rgba(0,0,0,0.1);
+        }
+        #search-panel input { 
+            width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; 
+            outline: none; transition: 0.3s;
+        }
+        #search-panel input:focus { border-color: #f2c96c; }
+        #history-list { max-height: 250px; overflow-y: auto; list-style: none; margin-top: 10px;}
+        .history-item { 
+            padding: 10px 12px; border-radius: 6px; margin-bottom: 5px;
+            font-size: 0.85rem; cursor: pointer; color: #444; 
+            transition: 0.2s; border-left: 3px solid transparent;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .history-item:hover { background: #fff9ed; border-left-color: #f2c96c; color: #000; }
+        #close-btn { cursor: pointer; align-self: flex-end; font-size: 18px; font-weight: bold; color: #999; }
+        #close-btn:hover { color: #000; }
 
-        .start-scan-btn { background-color: #f2c96c; border: none; padding: 12px 35px; border-radius: 10px; font-weight: 600; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s; }
-        .start-scan-btn:hover { background-color: #e0b85a; }
+        /* Main Content */
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center;}
+        .scan-container { width: 100%; max-width: 850px; text-align: center; margin-bottom: 40px; }
+        .main-title { font-size: 2rem; font-weight: 700; color: #222; margin-bottom: 30px; }
+        
+        .input-group { 
+            display: flex; gap: 10px; width: 100%; background: white; 
+            padding: 8px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border: 2px solid #000;
+        }
+        .input-group input { 
+            flex: 1; padding: 15px 20px; border: none; font-size: 1.1rem; outline: none; border-radius: 10px;
+        }
+        .start-scan-btn { 
+            background: #f2c96c; padding: 15px 40px; border: none; 
+            border-radius: 10px; cursor: pointer; font-weight: 700; 
+            font-size: 1rem; transition: 0.3s; color: #000;
+        }
+        .start-scan-btn:hover { background: #000; color: #f2c96c; transform: translateY(-2px); }
 
-        /* --- Report Table --- */
-        .report-section { width: 100%; max-width: 1100px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #eee; overflow: hidden; }
-        .report-header { background-color: #000; color: white; padding: 15px 25px; font-size: 1.2rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { background-color: #f8f9fa; color: #555; font-weight: 600; padding: 15px 20px; border-bottom: 2px solid #eee; font-size: 0.9rem; text-transform: uppercase; }
-        td { padding: 15px 20px; border-bottom: 1px solid #eee; font-size: 0.9rem; color: #333; vertical-align: middle; }
-        tr:hover { background-color: #fffdf7; }
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
-        .high { background: #ffebee; color: #c62828; }
+        .loading { display: none; font-size: 0.9rem; color: #666; margin-top: 20px; font-weight: 500; }
+        
+        /* Report Table Styling */
+        .report-section { 
+            width: 100%; max-width: 1100px; background: white; border-radius: 20px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.04); overflow: hidden; border: 1px solid #eee;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #fafafa; padding: 20px; text-align: left; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #888; border-bottom: 2px solid #f4f4f4; }
+        td { padding: 20px; border-bottom: 1px solid #f9f9f9; font-size: 0.95rem; color: #333; }
+        
+        .badge { padding: 6px 14px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .high { background: #ffebee; color: #d32f2f; }
         .medium { background: #fff3e0; color: #ef6c00; }
         .low { background: #e8f5e9; color: #2e7d32; }
-        .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; }
-        .loading { display: none; font-size: 14px; color: #555; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <aside class="sidebar">
     <div class="logo-container">
-        <img src="{{ url_for('static', filename='Detect.jpg') }}" alt="Detect Logo">
+        <div class="logo-circle">
+            <img src="{{ url_for('static', filename='Detect.png') }}" alt="BugScout Logo">
+        </div>
     </div>
-    <div class="nav-item">New Chat</div>
-    <div class="nav-item">Search Chat</div>
+
+    <div class="nav-group">
+        <div class="nav-item" onclick="newChat()"><span>+</span> New Scan</div>
+        <div class="nav-item" onclick="openSearch()"><span>🔍</span> History Search</div>
+    </div>
+
+    <div id="search-panel">
+        <div id="close-btn" onclick="closeSearch()">✖</div>
+        <input type="text" id="search-input" placeholder="Find past scans..." onkeyup="filterHistory()">
+        <ul id="history-list">
+            </ul>
+    </div>
 </aside>
 
 <main class="main-content">
-    <div class="top-bar">
-        <button class="share-btn">Share</button>
-    </div>
-
     <section class="scan-container">
-        <div class="input-wrapper">
-            <!-- Search Icon SVG -->
-            <svg class="search-icon" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="7"></circle>
-                <line x1="16" y1="16" x2="22" y2="22"></line>
-            </svg>
-            <input type="text" id="url-input" placeholder="https://example.com/analysis">
+        <h1 class="main-title">URL Security Scout</h1>
+        <div class="input-group">
+            <input type="text" id="url-input" placeholder="Enter target URL (e.g. https://google.com)">
+            <button class="start-scan-btn" onclick="startScan()">Analyze</button>
         </div>
-        <button class="start-scan-btn" onclick="startScan()">Start Scanning</button>
-        <div class="loading" id="loading-text">Scanning URL, please wait...</div>
+        <div class="loading" id="loading-text">🚀 Scout is analyzing the target...</div>
     </section>
 
     <section class="report-section">
-        <div class="report-header">Scan Analysis Report</div>
         <table id="report-table">
             <thead>
                 <tr>
-                    <th>Issue Found</th>
-                    <th>Severity Level</th>
-                    <th>Provide Solution</th>
-                    <th>Improvement After Fix</th>
+                    <th>Detected Vulnerability</th>
+                    <th>Risk Level</th>
+                    <th>Remediation</th>
+                    <th>Security Growth</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+                </tbody>
         </table>
     </section>
 </main>
 
 <script>
-async function startScan() {
-    const url = document.getElementById("url-input").value;
-    if (!url) {
-        alert("Please enter a URL!");
-        return;
-    }
+let scanHistory = [];
 
-    const loading = document.getElementById("loading-text");
-    loading.style.display = "block";
+async function startScan() {
+    const url = document.getElementById("url-input").value.trim();
+    if (!url) return;
+
+    document.getElementById("loading-text").style.display = "block";
+    const tbody = document.querySelector("#report-table tbody");
 
     try {
-        const response = await fetch("/scan", {
+        const res = await fetch("/scan", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ url })
         });
+        const data = await res.json();
 
-        if (!response.ok) throw new Error("Network response was not ok");
+        // Save to local history state
+        if (!scanHistory.find(item => item.url === url)) {
+            scanHistory.push({ url: url, data: data });
+            updateHistoryUI();
+        }
 
-        const data = await response.json();
+        displayResults(data);
 
-        const tbody = document.querySelector("#report-table tbody");
-        tbody.innerHTML = ""; // clear previous results
-
-        data.forEach(item => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${item.issue}</td>
-                <td><span class="badge ${item.severity}">${item.severity}</span></td>
-                <td>${item.solution}</td>
-                <td>${item.improvement}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    } catch (error) {
-        alert("Error scanning URL: " + error.message);
-    } finally {
-        loading.style.display = "none";
+    } catch (e) { 
+        console.error("Scan Error:", e);
+        alert("Failed to reach scanner server.");
+    } finally { 
+        document.getElementById("loading-text").style.display = "none"; 
     }
+}
+
+function displayResults(data) {
+    const tbody = document.querySelector("#report-table tbody");
+    tbody.innerHTML = "";
+    
+    if(data.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding:40px; color:#999;'>No issues detected for this URL.</td></tr>";
+        return;
+    }
+
+    data.forEach(i => {
+        tbody.innerHTML += `
+            <tr>
+                <td style="font-weight:600;">${i.issue}</td>
+                <td><span class="badge ${i.severity.toLowerCase()}">${i.severity}</span></td>
+                <td>${i.solution}</td>
+                <td>${i.improvement}</td>
+            </tr>`;
+    });
+}
+
+function updateHistoryUI() {
+    const list = document.getElementById("history-list");
+    list.innerHTML = "";
+    scanHistory.forEach((item, index) => {
+        const li = document.createElement("li");
+        li.className = "history-item";
+        li.textContent = item.url;
+        li.title = item.url;
+        li.onclick = () => loadFromHistory(index);
+        list.appendChild(li);
+    });
+}
+
+function loadFromHistory(index) {
+    const selected = scanHistory[index];
+    document.getElementById("url-input").value = selected.url;
+    displayResults(selected.data);
+    closeSearch();
+}
+
+function filterHistory() {
+    const val = document.getElementById("search-input").value.toLowerCase();
+    const items = document.querySelectorAll(".history-item");
+    items.forEach(item => {
+        item.style.display = item.textContent.toLowerCase().includes(val) ? "block" : "none";
+    });
+}
+
+function newChat() {
+    document.getElementById("url-input").value = "";
+    document.querySelector("#report-table tbody").innerHTML = "";
+    closeSearch();
+}
+
+function openSearch() {
+    const panel = document.getElementById("search-panel");
+    panel.style.display = panel.style.display === "flex" ? "none" : "flex";
+}
+
+function closeSearch() {
+    document.getElementById("search-panel").style.display = "none";
 }
 </script>
 
